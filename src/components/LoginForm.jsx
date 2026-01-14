@@ -4,7 +4,7 @@ import { useAuth } from '../auth/useAuth';
 import { loginApi } from '../api/auth';
 
 const LoginForm = () => {
-    const { login } = useAuth();
+    const { login, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,9 +17,20 @@ const LoginForm = () => {
 
         try {
             const data = await loginApi({ email, password, companyShortName });
-            console.log(data);
-            login({ email: data.user_email, company: data.company_uuid, token: data.token });
-            navigate('/');
+            login({ 
+                email: data.user_email, 
+                company: data.company_uuid, 
+                token: data.token,
+                roles: data.roles,
+                user_uuid: data.user_uuid
+            });
+            
+            // Przekierowanie w zależności od roli
+            if (data.roles.includes('ROLE_ADMIN_CMS')) {
+                navigate('/'); // Admin -> CMS
+            } else {
+                navigate('/user'); // Zwykły użytkownik -> frontend
+            }
         } catch (err) {
             setError('Nieprawidłowe dane logowania');
         }

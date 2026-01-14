@@ -59,6 +59,7 @@ export const getDeletedUsers = async () => {
         const res = await axiosUser.get('/deleted', {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
+        return res.data;
     } catch (err) {
         throw err;
     }
@@ -77,7 +78,7 @@ export const reviewUser = async (id) => {
 
 export const deleteUser = async (id) => {
     try {
-        const res = await axiosUser.post(`/delete/${id}`, {
+        const res = await axiosUser.post(`/delete/${id}`, {}, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;
@@ -87,7 +88,7 @@ export const deleteUser = async (id) => {
 }
 export const toggleUserActive = async (id) => {
     try {
-        const res = await axiosUser.post(`/toggle-active/${id}`, {
+        const res = await axiosUser.post(`/toggle-active/${id}`, {}, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;

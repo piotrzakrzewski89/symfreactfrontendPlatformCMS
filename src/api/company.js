@@ -69,7 +69,7 @@ export const deleteCompany = async (id) => {
 // nowa funkcja: włącz/wyłącz aktywność firmy
 export const toggleCompanyActive = async (id) => {
     try {
-        const res = await axiosCompany.post(`/toggle-active/${id}`, {
+        const res = await axiosCompany.post(`/toggle-active/${id}`, {}, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;

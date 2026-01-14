@@ -74,7 +74,6 @@ const UserModal = ({
     }, []);
 
     const onSubmit = async (data) => {
-        console.log(data)
         if (readOnly) return;
         try {
             setBackendError(null);
@@ -147,7 +146,7 @@ const UserModal = ({
                                             <Select
                                                 labelId="company-label"
                                                 {...register("companyUuid", { required: "Firma jest wymagana" })}
-                                                defaultValue={initialData?.company || ""}
+                                                defaultValue={initialData?.companyUuid || ""}
                                             >
                                                 <MenuItem value="">-- Wybierz firmę --</MenuItem>
                                                 {companies.map((c) => (
@@ -166,7 +165,7 @@ const UserModal = ({
                                             value={
                                                 (() => {
                                                     const selectedCompany = companies.find(
-                                                        (c) => c.uuid === initialData?.company
+                                                        (c) => c.uuid === initialData?.companyUuid
                                                     );
                                                     return selectedCompany
                                                         ? `${selectedCompany.longName} (${selectedCompany.uuid})`
@@ -234,7 +233,10 @@ const UserModal = ({
                             )}
 
                             <Grid item xs={12}>
-                                <FormControlLabel control={<Checkbox {...register('isActive')} />} label="Pracownik aktywny" />
+                                <FormControlLabel 
+                                    control={<Checkbox {...register('isActive')} checked={initialData?.isActive || false} />} 
+                                    label="Pracownik aktywny" 
+                                />
                             </Grid>
                         </Grid>
 

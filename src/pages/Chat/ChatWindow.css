@@ -1,0 +1,38 @@
+.chat-window {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chat-window.minimized {
+    height: 40px;
+    width: 250px;
+}
+
+.chat-window .card-header {
+    cursor: move;
+}
+
+.chat-window .card-body {
+    height: calc(100% - 120px);
+    overflow-y: auto;
+}
+
+.chat-window .card-footer {
+    position: sticky;
+    bottom: 0;
+}
+
+.minimize-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+}

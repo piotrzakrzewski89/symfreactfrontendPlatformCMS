@@ -31,6 +31,14 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('admin', JSON.stringify(updatedAdmin));
     };
 
+    const isAdmin = () => {
+        return admin?.roles?.includes('ROLE_ADMIN_CMS') || false;
+    };
+
+    const hasRole = (role) => {
+        return admin?.roles?.includes(role) || false;
+    };
+
     const logout = () => {
         setAdmin(null);
         localStorage.removeItem('admin');
@@ -46,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ admin, login, logout, refreshExpiry }}>
+        <AuthContext.Provider value={{ admin, login, logout, refreshExpiry, isAdmin, hasRole }}>
             {children}
         </AuthContext.Provider>
     );
