@@ -34,18 +34,18 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // Dodawanie do koszyka - useCallback
     const addToCart = useCallback((book: Book, quantity: number = 1) => {
         setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item.uuid === book.uuid);
+            const existingItem = prevItems.find(item => item.uuid === book.id);
             
             if (existingItem) {
                 // Aktualizacja ilości jeśli produkt już jest w koszyku
                 return prevItems.map(item =>
-                    item.uuid === book.uuid
+                    item.uuid === book.id
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
                 );
             } else {
-                // Dodanie nowego produktu
-                return [...prevItems, { ...book, quantity }];
+                // Dodanie nowego produktu - używamy book.id jako uuid
+                return [...prevItems, { ...book, quantity, uuid: book.id }];
             }
         });
     }, []);

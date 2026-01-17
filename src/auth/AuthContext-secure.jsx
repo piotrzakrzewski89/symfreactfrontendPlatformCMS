@@ -41,9 +41,25 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        setAdmin(null);
-        sessionStorage.removeItem('admin');
+    const logout = async () => {
+        try {
+            // Mark user as offline in Redis via backend
+            if (admin?.token) {
+                await fetch('http://localhost:8084/api/platform/presence/offline', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${admin.token}`
+                    }
+                }).catch(err => console.error('Failed to update presence:', err));
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+        } finally {
+            // Always clear session and redirect
+            setAdmin(null);
+            sessionStorage.removeItem('admin');
+            window.location.href = '/login';
+        }
     };
 
     // Reset expiry przy każdym request

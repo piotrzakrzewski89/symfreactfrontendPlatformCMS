@@ -1,7 +1,6 @@
 // Typy danych dla książek
 export interface Book {
-    id: string;
-    uuid: string;
+    id: string; // UUID książki z API
     title: string;
     ownerUuid: string;
     ownerName: string;
@@ -12,11 +11,15 @@ export interface Book {
     category?: string | null;
     createdAt: string;
     updatedAt?: string | null;
+    formattedPrice?: string;
+    isAvailable?: boolean;
+    availabilityStatus?: string;
 }
 
 // Typy dla koszyka
 export interface CartItem extends Book {
     quantity: number;
+    uuid: string; // UUID używane w koszyku (to samo co book.id)
 }
 
 // Typy dla filtrów

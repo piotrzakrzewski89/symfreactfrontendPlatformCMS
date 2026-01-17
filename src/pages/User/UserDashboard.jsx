@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../auth/useAuth';
 import BookList from '../../components/BookList';
-import { mockBooks } from '../../data/mockBooks';
 
 const UserDashboard = () => {
     const { admin, logout } = useAuth();
@@ -19,7 +18,8 @@ const UserDashboard = () => {
             {/* Lista książek */}
             <div className="row">
                 <div className="col-12">
-                    <BookList books={mockBooks} />
+                    {/* Główna lista książek z filtrem firmowym */}
+                    <BookList showCompanyFilter={true} />
                 </div>
             </div>
         </div>

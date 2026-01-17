@@ -2,6 +2,7 @@
 import React from "react";
 import { useAuth } from '../../auth/useAuth';
 import { Box } from '@mui/material';
+import BookList from '../../components/BookList';
 
 const Home = () => {
     const { admin } = useAuth();

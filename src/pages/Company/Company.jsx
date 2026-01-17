@@ -18,6 +18,7 @@ const CompanyPage = () => {
   const [loadingActive, setLoadingActive] = useState(false);
   const [loadingDeleted, setLoadingDeleted] = useState(false);
   const [view, setView] = useState('active');
+  const [sorting, setSorting] = useState([{ id: 'id', desc: false }]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('review'); // 'create' | 'view' | 'edit'
@@ -26,7 +27,9 @@ const CompanyPage = () => {
   const fetchActiveCompanies = async () => {
     setLoadingActive(true);
     try {
-      const data = await getActiveCompanies();
+      const sortBy = sorting[0]?.id || 'id';
+      const sortOrder = sorting[0]?.desc ? 'desc' : 'asc';
+      const data = await getActiveCompanies(sortBy, sortOrder);
       setActiveCompanies(data);
     } finally {
       setLoadingActive(false);
@@ -36,7 +39,9 @@ const CompanyPage = () => {
   const fetchDeletedCompanies = async () => {
     setLoadingDeleted(true);
     try {
-      const data = await getDeletedCompanies();
+      const sortBy = sorting[0]?.id || 'id';
+      const sortOrder = sorting[0]?.desc ? 'desc' : 'asc';
+      const data = await getDeletedCompanies(sortBy, sortOrder);
       setDeletedCompanies(data);
     } finally {
       setLoadingDeleted(false);
@@ -50,7 +55,7 @@ const CompanyPage = () => {
 
   useEffect(() => {
     refreshCurrent();
-  }, [view]);
+  }, [view, sorting]);
 
   // Modal
   const openCreateModal = () => {
@@ -122,6 +127,8 @@ const CompanyPage = () => {
           companies={activeCompanies}
           loading={loadingActive}
           view={view}
+          sorting={sorting}
+          onSortingChange={setSorting}
           onCreateClick={openCreateModal}
           onReview={handleReview}
           onEdit={handleEdit}
@@ -136,6 +143,8 @@ const CompanyPage = () => {
           companies={deletedCompanies}
           loading={loadingDeleted}
           view={view}
+          sorting={sorting}
+          onSortingChange={setSorting}
           onReview={handleReview}
         />
       )}

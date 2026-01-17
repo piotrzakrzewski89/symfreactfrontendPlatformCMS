@@ -2,8 +2,9 @@
 import type { Book, BookFilters, SortBy } from '../types/book.types';
 
 // Formatowanie ceny
-export const formatPrice = (price: number): string => {
-    return price.toFixed(2) + ' zł';
+export const formatPrice = (price: number | string): string => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return numPrice.toFixed(2) + ' zł';
 };
 
 // Formatowanie daty
@@ -91,6 +92,10 @@ export const getCategories = (books: Book[]): string[] => {
 // Generowanie placeholdera dla okładki
 export const getCoverImage = (book: Book): string => {
     if (book.coverImage) {
+        // Jeśli coverImage zaczyna się od /, dodaj pełny URL backendu
+        if (book.coverImage.startsWith('/')) {
+            return `http://localhost:8084${book.coverImage}`;
+        }
         return book.coverImage;
     }
     // Można dodać domyślny placeholder lub URL do serwisu z placeholderami

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import CartWidget from './CartWidget';
+import SessionTimer from './SessionTimer';
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -21,13 +22,9 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         { path: "/user/profile", label: "Mój profil" },
         { path: "/user/points", label: "Moje punkty" },
         { path: "/user/my-books", label: "Moje książki" },
+        { path: "/user/add-book", label: "➕ Dodaj książkę" },
         { path: "/user/purchase-history", label: "Historia zakupów" },
     ];
-
-    const handleLogout = (e: React.MouseEvent) => {
-        e.preventDefault();
-        logout();
-    };
 
     return (
         <div>
@@ -36,7 +33,13 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                 <div className="container">
                     <Link to="/user" className="navbar-brand">Portal Pracownica</Link>
                     
-                    <div className="navbar-nav ms-auto">
+                    <div className="navbar-nav ms-auto d-flex align-items-center">
+                        {/* Koszyk */}
+                        <div className="me-3">
+                            <CartWidget />
+                        </div>
+                        
+                        {/* Dropdown menu */}
                         <div className="nav-item dropdown">
                             <a 
                                 className="nav-link dropdown-toggle" 
@@ -60,11 +63,16 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 ))}
                                 <li><hr className="dropdown-divider" /></li>
                                 <li>
-                                    <a className="dropdown-item" href="#" onClick={handleLogout}>
+                                    <a className="dropdown-item" href="#" onClick={logout}>
                                         Wyloguj
                                     </a>
                                 </li>
                             </ul>
+                        </div>
+                        
+                        {/* Timer sesji */}
+                        <div className="ms-3">
+                            <SessionTimer />
                         </div>
                     </div>
                 </div>
@@ -74,9 +82,6 @@ const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             <main>
                 {children}
             </main>
-            
-            {/* Widget koszyka */}
-            <CartWidget />
         </div>
     );
 };

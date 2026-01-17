@@ -10,6 +10,7 @@ const Layout = ({ children }) => {
         { path: "/company", label: "Firma" },
         { path: "/users", label: "Pracownicy" },
         { path: "/points-bank", label: "Bank Punktów" },
+        { path: "/categories", label: "Kategorie" },
     ];
 
     return (

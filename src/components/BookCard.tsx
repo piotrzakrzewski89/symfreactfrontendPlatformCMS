@@ -1,5 +1,7 @@
 import React from 'react';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../auth/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { formatPrice, getAvailabilityStatus, getCoverImage } from '../utils/bookUtils';
 import type { Book } from '../types/book.types';
 
@@ -9,7 +11,12 @@ interface BookCardProps {
 
 const BookCard = React.memo<BookCardProps>(({ book }) => {
     const { addToCart } = useCart();
+    const { admin } = useAuth();
+    const navigate = useNavigate();
     const availability = getAvailabilityStatus(book);
+
+    // Check if this book belongs to the current user
+    const isOwnBook = admin?.userUuid === book.ownerUuid || admin?.sub === book.ownerUuid;
 
     const handleAddToCart = () => {
         addToCart(book, 1);
@@ -17,8 +24,8 @@ const BookCard = React.memo<BookCardProps>(({ book }) => {
 
     const handleBuyNow = () => {
         addToCart(book, 1);
-        // Tutaj będzie przekierowanie do płatności
-        alert('Funkcja "Kup teraz" zostanie zaimplementowana!');
+        // Przekierowanie do checkout
+        navigate('/user/checkout');
     };
 
     return (
@@ -72,20 +79,29 @@ const BookCard = React.memo<BookCardProps>(({ book }) => {
                     
                     {/* Przyciski akcji */}
                     <div className="btn-group w-100" role="group">
-                        <button 
-                            className="btn btn-outline-primary btn-sm"
-                            disabled={!availability.text.includes('Dostępne')}
-                            onClick={handleAddToCart}
-                        >
-                            <i className="bi bi-cart-plus"></i> Do koszyka
-                        </button>
-                        <button 
-                            className="btn btn-primary btn-sm"
-                            disabled={!availability.text.includes('Dostępne')}
-                            onClick={handleBuyNow}
-                        >
-                            <i className="bi bi-lightning"></i> Kup teraz
-                        </button>
+                        {!isOwnBook && (
+                            <>
+                                <button 
+                                    className="btn btn-outline-primary btn-sm"
+                                    disabled={!availability.text.includes('Dostępne')}
+                                    onClick={handleAddToCart}
+                                >
+                                    <i className="bi bi-cart-plus"></i> Do koszyka
+                                </button>
+                                <button 
+                                    className="btn btn-primary btn-sm"
+                                    disabled={!availability.text.includes('Dostępne')}
+                                    onClick={handleBuyNow}
+                                >
+                                    <i className="bi bi-lightning"></i> Kup teraz
+                                </button>
+                            </>
+                        )}
+                        {isOwnBook && (
+                            <div className="text-center text-muted small">
+                                <i className="bi bi-info-circle"></i> Twoja książka
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

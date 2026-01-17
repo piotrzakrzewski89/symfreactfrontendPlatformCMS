@@ -1,0 +1,129 @@
+/* Koszyk w navbar */
+.cart-widget-navbar {
+    position: relative;
+}
+
+.cart-widget-dropdown {
+    position: absolute !important;
+    right: 0;
+    top: 100%;
+    z-index: 9999 !important;
+    animation: fadeIn 0.2s ease-in-out;
+    margin-top: 4px;
+    min-width: 320px;
+}
+
+.cart-widget-dropdown .card {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cart-widget-dropdown .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.cart-widget-dropdown .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Prosta ikona koszyka */
+.cart-icon-btn {
+    transition: all 0.2s ease-in-out;
+    background: transparent !important;
+    border: none !important;
+    color: #6c757d !important;
+    font-size: 24px;
+    padding: 8px;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    cursor: pointer !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.cart-icon-btn .cart-icon {
+    transition: all 0.2s ease-in-out;
+}
+
+.cart-icon-btn:hover {
+    color: #5a6268 !important;
+    transform: scale(1.1);
+}
+
+.cart-icon-btn:hover .cart-icon {
+    stroke-width: 2.5;
+}
+
+.cart-icon-btn:active {
+    color: #495057 !important;
+    transform: scale(0.95);
+}
+
+.cart-icon-btn i {
+    margin: 0;
+}
+
+/* Liczba produktów */
+.cart-widget-navbar button .badge {
+    font-size: 10px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    line-height: 16px !important;
+    padding: 0 4px !important;
+    border-radius: 50% !important;
+    background: #dc3545 !important;
+    border: 1px solid #dc3545 !important;
+    font-weight: 600;
+}
+
+/* Animacje dla koszyka */
+.cart-widget-dropdown {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Zapobieganie nakładania */
+.cart-widget-navbar {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .cart-widget-dropdown .card {
+        width: 280px !important;
+    }
+    
+    .cart-widget-dropdown .card-body {
+        max-height: 200px !important;
+    }
+    
+    .cart-icon-btn {
+        min-width: 40px !important;
+        height: 32px !important;
+        font-size: 20px !important;
+    }
+    
+    .cart-widget-navbar button .badge {
+        font-size: 9px !important;
+        min-width: 16px !important;
+        height: 16px !important;
+        line-height: 16px !important;
+        padding: 0 4px !important;
+    }
+}

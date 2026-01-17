@@ -1,75 +1,66 @@
-import React, { useState } from 'react';
-
-// Symulacja danych historii zakupów
-const mockPurchaseHistory = [
-    {
-        id: '1',
-        bookTitle: 'Wiedźmin: Ostatnie życzenie',
-        bookUuid: '550e8400-e29b-41d4-a716-446655440001',
-        sellerName: 'Jan Kowalski',
-        sellerUuid: '550e8400-e29b-41d4-a716-446655440100',
-        quantity: 1,
-        purchasePrice: 45.99,
-        totalPrice: 45.99,
-        purchaseDate: '2024-01-15T14:30:00Z',
-        status: 'completed' // completed, pending, cancelled
-    },
-    {
-        id: '2',
-        bookTitle: 'Hobbit',
-        bookUuid: '550e8400-e29b-41d4-a716-446655440003',
-        sellerName: 'Piotr Wiśniewski',
-        sellerUuid: '550e8400-e29b-41d4-a716-446655440102',
-        quantity: 2,
-        purchasePrice: 39.99,
-        totalPrice: 79.98,
-        purchaseDate: '2024-01-14T10:15:00Z',
-        status: 'completed'
-    },
-    {
-        id: '3',
-        bookTitle: '1984',
-        bookUuid: '550e8400-e29b-41d4-a716-446655440006',
-        sellerName: 'Magdalena Zielińska',
-        sellerUuid: '550e8400-e29b-41d4-a716-446655440105',
-        quantity: 1,
-        purchasePrice: 31.99,
-        totalPrice: 31.99,
-        purchaseDate: '2024-01-13T16:45:00Z',
-        status: 'pending'
-    },
-    {
-        id: '4',
-        bookTitle: 'Pan Tadeusz',
-        bookUuid: '550e8400-e29b-41d4-a716-446655440002',
-        sellerName: 'Anna Nowak',
-        sellerUuid: '550e8400-e29b-41d4-a716-446655440101',
-        quantity: 3,
-        purchasePrice: 29.50,
-        totalPrice: 88.50,
-        purchaseDate: '2024-01-12T09:20:00Z',
-        status: 'completed'
-    },
-    {
-        id: '5',
-        bookTitle: 'Duma i uprzedzenie',
-        bookUuid: '550e8400-e29b-41d4-a716-446655440005',
-        sellerName: 'Tomasz Lewandowski',
-        sellerUuid: '550e8400-e29b-41d4-a716-446655440104',
-        quantity: 1,
-        purchasePrice: 42.50,
-        totalPrice: 42.50,
-        purchaseDate: '2024-01-10T11:30:00Z',
-        status: 'cancelled'
-    }
-];
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../auth/useAuth';
+import { formatPrice } from '../../utils/bookUtils';
 
 const PurchaseHistory = () => {
+    const { admin } = useAuth();
+    const [purchases, setPurchases] = useState([]);
+    const [statistics, setStatistics] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filterStatus, setFilterStatus] = useState('all'); // all, completed, pending, cancelled
     const [sortBy, setSortBy] = useState('date'); // date, price, title
 
+    // Pobieranie danych z backendu
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const userUuid = admin?.sub || admin?.user_uuid || admin?.uuid;
+                const token = admin?.token?.access_token || admin?.token;
+                
+                if (!userUuid || !token) {
+                    throw new Error('User UUID or token not found');
+                }
+
+                // Pobierz zakupy
+                const purchasesResponse = await fetch(`http://localhost:8084/api/purchases?buyerUuid=${userUuid}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!purchasesResponse.ok) {
+                    throw new Error('Failed to fetch purchases');
+                }
+
+                const purchasesData = await purchasesResponse.json();
+                setPurchases(purchasesData.data || []);
+
+                // Pobierz statystyki
+                const statsResponse = await fetch(`http://localhost:8084/api/purchases/buyer/${userUuid}/statistics`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    setStatistics(statsData.data);
+                }
+
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [admin?.sub, admin?.user_uuid, admin?.uuid, admin?.token?.access_token, admin?.token]);
+
     // Filtrowanie historii
-    const filteredHistory = mockPurchaseHistory.filter(purchase => {
+    const filteredHistory = purchases.filter(purchase => {
         if (filterStatus === 'all') return true;
         return purchase.status === filterStatus;
     });
@@ -78,7 +69,7 @@ const PurchaseHistory = () => {
     const sortedHistory = [...filteredHistory].sort((a, b) => {
         switch (sortBy) {
             case 'date':
-                return new Date(b.purchaseDate) - new Date(a.purchaseDate);
+                return new Date(b.createdAt) - new Date(a.createdAt);
             case 'price':
                 return b.totalPrice - a.totalPrice;
             case 'title':
@@ -88,14 +79,19 @@ const PurchaseHistory = () => {
         }
     });
 
-    // Obliczenia statystyk
-    const totalSpent = filteredHistory
-        .filter(p => p.status === 'completed')
-        .reduce((sum, p) => sum + p.totalPrice, 0);
+    // Obliczenia statystyk z backendu lub frontendu
+    const totalSpent = statistics?.totalSpent || 
+        filteredHistory
+            .filter(p => p.status === 'completed')
+            .reduce((sum, p) => sum + p.totalPrice, 0);
     
-    const totalBooks = filteredHistory
-        .filter(p => p.status === 'completed')
-        .reduce((sum, p) => sum + p.quantity, 0);
+    const totalBooks = statistics?.totalBooks || 
+        filteredHistory
+            .filter(p => p.status === 'completed')
+            .reduce((sum, p) => sum + p.quantity, 0);
+
+    const pendingCount = statistics?.pendingPurchases || 
+        filteredHistory.filter(p => p.status === 'pending').length;
 
     const getStatusBadge = (status) => {
         switch (status) {
@@ -121,6 +117,36 @@ const PurchaseHistory = () => {
         });
     };
 
+    if (loading) {
+        return (
+            <div className="container mt-4">
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Ładowanie historii zakupów...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mt-4">
+                <div className="alert alert-danger">
+                    <h4>Błąd ładowania</h4>
+                    <p>Nie udało się załadować historii zakupów: {error}</p>
+                    <button 
+                        className="btn btn-outline-danger"
+                        onClick={() => window.location.reload()}
+                    >
+                        Spróbuj ponownie
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="container mt-4">
             {/* Nagłówek */}
@@ -144,7 +170,7 @@ const PurchaseHistory = () => {
                 <div className="col-md-4">
                     <div className="card text-center">
                         <div className="card-body">
-                            <h5 className="card-title text-primary">{totalSpent.toFixed(2)} zł</h5>
+                            <h5 className="card-title text-primary">{formatPrice(totalSpent)}</h5>
                             <p className="card-text">Całkowity wydatek</p>
                         </div>
                     </div>
@@ -152,9 +178,7 @@ const PurchaseHistory = () => {
                 <div className="col-md-4">
                     <div className="card text-center">
                         <div className="card-body">
-                            <h5 className="card-title text-info">
-                                {filteredHistory.filter(p => p.status === 'pending').length}
-                            </h5>
+                            <h5 className="card-title text-info">{pendingCount}</h5>
                             <p className="card-text">Oczekujące transakcje</p>
                         </div>
                     </div>
@@ -202,26 +226,26 @@ const PurchaseHistory = () => {
             {sortedHistory.length > 0 ? (
                 <div className="list-group">
                     {sortedHistory.map((purchase) => (
-                        <div key={purchase.id} className="list-group-item">
+                        <div key={purchase.uuid} className="list-group-item">
                             <div className="row align-items-center">
                                 <div className="col-md-4">
                                     <h6 className="mb-1">{purchase.bookTitle}</h6>
                                     <small className="text-muted">
-                                        Sprzedawca: {purchase.sellerName}
+                                        ID: {purchase.uuid.substring(0, 8)}...
                                     </small>
                                 </div>
                                 <div className="col-md-2">
                                     <div className="text-center">
                                         <div className="fw-bold">{purchase.quantity} szt.</div>
                                         <small className="text-muted">
-                                            {purchase.purchasePrice.toFixed(2)} zł/szt.
+                                            {formatPrice(purchase.purchasePrice)}/szt.
                                         </small>
                                     </div>
                                 </div>
                                 <div className="col-md-2">
                                     <div className="text-center">
                                         <div className="h5 text-primary mb-0">
-                                            {purchase.totalPrice.toFixed(2)} zł
+                                            {formatPrice(purchase.totalPrice)}
                                         </div>
                                     </div>
                                 </div>
@@ -233,7 +257,7 @@ const PurchaseHistory = () => {
                                 <div className="col-md-2">
                                     <div className="text-center">
                                         <small className="text-muted">
-                                            {formatDate(purchase.purchaseDate)}
+                                            {formatDate(purchase.createdAt)}
                                         </small>
                                     </div>
                                 </div>

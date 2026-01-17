@@ -92,7 +92,9 @@ const ChatWidget = () => {
         
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
             
             await fetch(`${API_PLATFORM_URL}/typing`, {
                 method: 'POST',
@@ -110,16 +112,30 @@ const ChatWidget = () => {
         }
     };
 
-    // Fetch users on mount
+    // Fetch users and conversations on mount
     useEffect(() => {
-        if (currentUserId) {
-            const loadData = async () => {
-                const users = await fetchUsers();
+        const initializeChat = async () => {
+            const users = await fetchUsers();
+            if (users.length > 0) {
                 await fetchConversations(users);
-            };
-            loadData();
-        }
-    }, [currentUserId]);
+            } else {
+                console.log('ChatWidget: No users fetched, skipping conversations');
+            }
+        };
+        
+        initializeChat();
+        
+        // Odświeżaj statusy użytkowników co 30 sekund
+        const refreshInterval = setInterval(async () => {
+            console.log('ChatWidget: Refreshing user statuses...');
+            const users = await fetchUsers();
+            if (users.length > 0) {
+                await fetchConversations(users);
+            }
+        }, 30000); // 30 sekund
+        
+        return () => clearInterval(refreshInterval);
+    }, []);
 
     // WebSocket/Mercure connection
     useEffect(() => {
@@ -192,7 +208,11 @@ const ChatWidget = () => {
     const fetchUsers = async (): Promise<User[]> => {
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            // Token może być stringiem lub obiektem z access_token
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
+            
             if (!token) {
                 console.error('No token available');
                 return [];
@@ -218,7 +238,9 @@ const ChatWidget = () => {
     const fetchConversations = async (users?: User[]) => {
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
             if (!token) return;
             
             // Pobierz konwersacje
@@ -270,7 +292,9 @@ const ChatWidget = () => {
 
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
             if (!token) return;
             
             // Resetuj flagę i wyślij typing indicator false
@@ -346,7 +370,9 @@ const ChatWidget = () => {
     const fetchMessages = async (userId: string) => {
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
             if (!token) return;
             const response = await fetch(`${API_PLATFORM_URL}/messages/${userId}`, {
                 headers: {
@@ -365,7 +391,9 @@ const ChatWidget = () => {
     const markAsRead = async (roomId: string) => {
         try {
             const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-            const token = admin?.token?.access_token;
+            const token = typeof admin?.token === 'string' 
+                ? admin.token 
+                : admin?.token?.access_token;
             if (!token) return;
             await fetch(`${API_PLATFORM_URL}/messages/${roomId}/read`, {
                 method: 'POST',

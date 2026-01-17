@@ -10,9 +10,9 @@ const getAdminToken = () => {
     return admin.token.access_token;
 };
 
-export const getActiveCompanies = async () => {
+export const getActiveCompanies = async (sortBy = 'id', sortOrder = 'asc') => {
     try {
-        const res = await axiosCompany.get('/active', {
+        const res = await axiosCompany.get(`/active?sortBy=${sortBy}&sortOrder=${sortOrder}`, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;
@@ -21,9 +21,9 @@ export const getActiveCompanies = async () => {
     }
 };
 
-export const getDeletedCompanies = async () => {
+export const getDeletedCompanies = async (sortBy = 'id', sortOrder = 'asc') => {
     try {
-        const res = await axiosCompany.get('/deleted', {
+        const res = await axiosCompany.get(`/deleted?sortBy=${sortBy}&sortOrder=${sortOrder}`, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;

@@ -1,20 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth/useAuth';
 import BookCard from '../../components/BookCard';
 import BookRow from '../../components/BookRow';
-import { mockBooks } from '../../data/mockBooks';
 
 const MyBooks = () => {
-    const [viewMode, setViewMode] = useState('list'); // Domyślnie lista dla szczegółów
-    const [showAddForm, setShowAddForm] = useState(false);
-    
-    // Symulacja - książki należące do zalogowanego użytkownika
-    // W prawdziwej aplikacji pobrane z API na podstawie UUID użytkownika
-    const myBooks = mockBooks.filter(book => 
-        book.ownerUuid === '550e8400-e29b-41d4-a716-446655440100' // Przykładowe UUID
-    );
+    const { admin } = useAuth();
+    const [viewMode, setViewMode] = useState('list');
+    const [myBooks, setMyBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const getToken = () => {
+        return typeof admin?.token === 'string' ? admin.token : admin?.token?.access_token;
+    };
+
+    useEffect(() => {
+        fetchMyBooks();
+    }, []);
+
+    const fetchMyBooks = async () => {
+        try {
+            setLoading(true);
+            const token = getToken();
+            
+            if (!token) {
+                setError('Brak autoryzacji');
+                setLoading(false);
+                return;
+            }
+
+            // Pobierz wszystkie książki i filtruj po ownerUuid
+            const response = await fetch('http://localhost:8084/api/books', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Nie udało się pobrać książek');
+            }
+
+            const data = await response.json();
+            const books = data.data || [];
+            
+            // Filtruj książki należące do zalogowanego użytkownika
+            const userUuid = admin?.user_uuid || admin?.uuid;
+            const userBooks = books.filter(book => book.ownerUuid === userUuid);
+            
+            setMyBooks(userBooks);
+            setError(null);
+        } catch (err) {
+            setError('Błąd podczas pobierania książek');
+            console.error('Error fetching books:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="container mt-5">
+                <div className="text-center">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Ładowanie...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mt-4">
+            {error && (
+                <div className="alert alert-danger" role="alert">
+                    {error}
+                </div>
+            )}
+
             {/* Nagłówek */}
             <div className="row mb-4">
                 <div className="col-12">
@@ -23,80 +86,12 @@ const MyBooks = () => {
                             <h2>Moje Książki</h2>
                             <p className="text-muted">Zarządzaj swoimi książkami</p>
                         </div>
-                        <button 
-                            className="btn btn-primary"
-                            onClick={() => setShowAddForm(!showAddForm)}
-                        >
+                        <Link to="/user/add-book" className="btn btn-primary">
                             <i className="bi bi-plus-circle"></i> Dodaj nową książkę
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
-
-            {/* Formularz dodawania książki */}
-            {showAddForm && (
-                <div className="row mb-4">
-                    <div className="col-12">
-                        <div className="card">
-                            <div className="card-header">
-                                <h5>Dodaj nową książkę</h5>
-                            </div>
-                            <div className="card-body">
-                                <form>
-                                    <div className="row g-3">
-                                        <div className="col-md-6">
-                                            <label className="form-label">Tytuł *</label>
-                                            <input type="text" className="form-control" placeholder="Wprowadź tytuł" />
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label">Kategoria</label>
-                                            <select className="form-select">
-                                                <option value="">Wybierz kategorię</option>
-                                                <option value="Fantasy">Fantasy</option>
-                                                <option value="Klasyka">Klasyka</option>
-                                                <option value="Sci-Fi">Sci-Fi</option>
-                                                <option value="Romans">Romans</option>
-                                                <option value="Historyczna">Historyczna</option>
-                                                <option value="Dla dzieci">Dla dzieci</option>
-                                            </select>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label">Cena (zł) *</label>
-                                            <input type="number" step="0.01" className="form-control" placeholder="0.00" />
-                                        </div>
-                                        <div className="col-md-6">
-                                            <label className="form-label">Ilość sztuk *</label>
-                                            <input type="number" className="form-control" placeholder="1" />
-                                        </div>
-                                        <div className="col-12">
-                                            <label className="form-label">Opis</label>
-                                            <textarea className="form-control" rows="3" placeholder="Krótki opis książki..."></textarea>
-                                        </div>
-                                        <div className="col-12">
-                                            <label className="form-label">URL okładki (opcjonalnie)</label>
-                                            <input type="url" className="form-control" placeholder="https://..." />
-                                        </div>
-                                        <div className="col-12">
-                                            <div className="btn-group">
-                                                <button type="submit" className="btn btn-primary">
-                                                    <i className="bi bi-check-circle"></i> Dodaj książkę
-                                                </button>
-                                                <button 
-                                                    type="button" 
-                                                    className="btn btn-secondary"
-                                                    onClick={() => setShowAddForm(false)}
-                                                >
-                                                    <i className="bi bi-x-circle"></i> Anuluj
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Statystyki */}
             <div className="row mb-4">

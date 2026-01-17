@@ -13,6 +13,8 @@ const UserTable = ({
   users,
   loading,
   view,
+  sorting = [],
+  onSortingChange,
   onCreateClick,
   onReview,
   onEdit,
@@ -120,11 +122,16 @@ const UserTable = ({
           columns={columns}
           data={users}
           localization={MRT_Localization_PL}
-          state={{ isLoading: loading }}
+          state={{ 
+            isLoading: loading,
+            sorting: sorting
+          }}
+          onSortingChange={onSortingChange}
           enableColumnResizing
           enableColumnOrdering
           enableColumnFilters
           enableHiding
+          manualSorting
           muiTableContainerProps={{
             sx: {
               overflowX: 'auto',
@@ -137,9 +144,11 @@ const UserTable = ({
             columnVisibility: {
               id: true,
               uuid: true,
-              fistName: true,
+              firstName: true,
               lastName: true,
               employeeNumber: true,
+              createdAt: true,
+              updatedAt: true,
               deletedAt: true,
               isActive: true,
               actions: true,

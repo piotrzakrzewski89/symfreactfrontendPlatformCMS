@@ -1,5 +1,7 @@
 import React from 'react';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../auth/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { formatPrice, getAvailabilityStatus, getCoverImage } from '../utils/bookUtils';
 import type { Book } from '../types/book.types';
 
@@ -9,7 +11,12 @@ interface BookRowProps {
 
 const BookRow = React.memo<BookRowProps>(({ book }) => {
     const { addToCart } = useCart();
+    const { admin } = useAuth();
+    const navigate = useNavigate();
     const availability = getAvailabilityStatus(book);
+
+    // Check if this book belongs to the current user
+    const isOwnBook = admin?.userUuid === book.ownerUuid || admin?.sub === book.ownerUuid;
 
     const handleAddToCart = () => {
         addToCart(book, 1);
@@ -17,8 +24,8 @@ const BookRow = React.memo<BookRowProps>(({ book }) => {
 
     const handleBuyNow = () => {
         addToCart(book, 1);
-        // Tutaj będzie przekierowanie do płatności
-        alert('Funkcja "Kup teraz" zostanie zaimplementowana!');
+        // Przekierowanie do checkout
+        navigate('/user/checkout');
     };
 
     return (
@@ -77,22 +84,31 @@ const BookRow = React.memo<BookRowProps>(({ book }) => {
                         
                         <div className="col-md-1">
                             <div className="btn-group btn-group-sm" role="group">
-                                <button 
-                                    className="btn btn-outline-primary"
-                                    disabled={!availability.text.includes('Dostępne')}
-                                    title="Do koszyka"
-                                    onClick={handleAddToCart}
-                                >
-                                    <i className="bi bi-cart-plus"></i>
-                                </button>
-                                <button 
-                                    className="btn btn-primary"
-                                    disabled={!availability.text.includes('Dostępne')}
-                                    title="Kup teraz"
-                                    onClick={handleBuyNow}
-                                >
-                                    <i className="bi bi-lightning"></i>
-                                </button>
+                                {!isOwnBook && (
+                                    <>
+                                        <button 
+                                            className="btn btn-outline-primary"
+                                            disabled={!availability.text.includes('Dostępne')}
+                                            title="Do koszyka"
+                                            onClick={handleAddToCart}
+                                        >
+                                            <i className="bi bi-cart-plus"></i>
+                                        </button>
+                                        <button 
+                                            className="btn btn-primary"
+                                            disabled={!availability.text.includes('Dostępne')}
+                                            title="Kup teraz"
+                                            onClick={handleBuyNow}
+                                        >
+                                            <i className="bi bi-lightning"></i>
+                                        </button>
+                                    </>
+                                )}
+                                {isOwnBook && (
+                                    <div className="text-center text-muted small">
+                                        <i className="bi bi-info-circle"></i>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

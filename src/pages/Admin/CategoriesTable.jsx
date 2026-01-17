@@ -2,32 +2,26 @@ import { MaterialReactTable } from 'material-react-table';
 import { Box, Button, Typography, IconButton } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import ToggleOnIcon from '@mui/icons-material/ToggleOn';
-import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { parseBackendDate } from '../../utils/dateUtils';
 import { MRT_Localization_PL } from 'material-react-table/locales/pl';
 
-const CompanyTable = ({
+const CategoriesTable = ({
   title,
-  companies,
+  categories,
   loading,
   view,
-  sorting = [],
-  onSortingChange,
   onCreateClick,
   onReview,
   onEdit,
-  onToggleActive,
   onDelete,
 }) => {
 
   const columns = [
     { accessorKey: 'id', header: 'ID', size: 100 },
     { accessorKey: 'uuid', header: 'UUID', size: 310 },
-    { accessorKey: 'longName', header: 'Długa nazwa' },
-    { accessorKey: 'shortName', header: 'Krótka nazwa', grow: 1 },
-    { accessorKey: 'taxNumber', header: 'NIP' },
+    { accessorKey: 'name', header: 'Nazwa kategorii', grow: 1 },
+    { accessorKey: 'description', header: 'Opis', grow: 2 },
     {
       accessorKey: 'createdAt',
       header: 'Utworzony',
@@ -39,23 +33,22 @@ const CompanyTable = ({
       Cell: ({ cell }) => { return cell.getValue() ? parseBackendDate(cell.getValue()) : '-'; }
     },
     {
-      accessorKey: 'deletedAt',
-      header: 'Usunięty',
-      Cell: ({ cell }) => { return cell.getValue() ? parseBackendDate(cell.getValue()) : '-'; }
+      accessorKey: 'isDefault',
+      header: 'Typ',
+      Cell: ({ cell }) => (
+        cell.getValue() ? (
+          <span style={{ color: '#1976d2', fontWeight: 'bold' }}>Domyślna</span>
+        ) : (
+          <span style={{ color: '#666' }}>Własna</span>
+        )
+      )
     },
-    { accessorKey: 'isActive', header: 'Aktywny', Cell: ({ cell }) => (cell.getValue() ? '✅' : '❌') },
-    { accessorKey: 'country', header: 'Kraj' },
-    { accessorKey: 'city', header: 'Miasto' },
-    { accessorKey: 'postalCode', header: 'Kod pocztowy' },
-    { accessorKey: 'street', header: 'Ulica' },
-    { accessorKey: 'buildingNumber', header: 'Numer budynku' },
-    { accessorKey: 'apartmentNumber', header: 'Numer lokalu' },
     {
       id: 'actions',
       header: 'Akcje',
-      size: 220,
+      size: 180,
       Cell: ({ row }) => {
-        const isActive = row.original.isActive;
+        const isDefault = row.original.isDefault;
 
         return (
           <Box sx={{ display: 'flex', gap: '0.25rem' }}>
@@ -68,8 +61,8 @@ const CompanyTable = ({
               <VisibilityIcon />
             </IconButton>
 
-            {/* Edycja / aktywacja / usuwanie – tylko w widoku aktywnych */}
-            {view === 'active' && (
+            {/* Edycja i usuwanie – tylko dla kategorii własnych */}
+            {!isDefault && (
               <>
                 <IconButton
                   color="secondary"
@@ -78,15 +71,6 @@ const CompanyTable = ({
                   title="Edytuj"
                 >
                   <EditIcon />
-                </IconButton>
-
-                <IconButton
-                  color={isActive ? 'success' : 'error'}
-                  size="small"
-                  onClick={() => onToggleActive?.(row.original.id)}
-                  title={isActive ? 'Dezaktywuj' : 'Aktywuj'}
-                >
-                  {isActive ? <ToggleOffIcon /> : <ToggleOnIcon />}
                 </IconButton>
 
                 <IconButton
@@ -99,6 +83,18 @@ const CompanyTable = ({
                 </IconButton>
               </>
             )}
+
+            {/* Info o niemożności edycji dla kategorii domyślnych */}
+            {isDefault && (
+              <span style={{ 
+                color: '#999', 
+                fontSize: '12px', 
+                alignSelf: 'center',
+                marginLeft: '8px'
+              }}>
+                Nie można edytować
+              </span>
+            )}
           </Box>
         );
       }
@@ -109,48 +105,38 @@ const CompanyTable = ({
     <>
       <Box sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          {title || 'Lista Firm'}
+          {title || 'Lista Kategorii'}
         </Typography>
 
-        {onCreateClick && view === 'active' && (
+        {onCreateClick && (
           <Box sx={{ mb: 2 }}>
             <Button variant="contained" color="primary" onClick={onCreateClick}>
-              ➕ Utwórz nową firmę
+              ➕ Utwórz nową kategorię
             </Button>
           </Box>
         )}
 
         <MaterialReactTable
           columns={columns}
-          data={companies}
+          data={categories}
           localization={MRT_Localization_PL}
-          state={{ 
-            isLoading: loading,
-            sorting: sorting
-          }}
-          onSortingChange={onSortingChange}
+          state={{ isLoading: loading }}
           enableColumnResizing
           enableColumnOrdering
           enableColumnFilters
           enableHiding
-          manualSorting
           initialState={{
             columnVisibility: {
               id: true,
-              uuid: true,
-              shortName: true,
-              longName: true,
-              taxNumber: false,
-              country: false,
-              city: false,
-              postalCode: false,
-              street: false,
-              buildingNumber: false,
-              apartmentNumber: false,
-              deletedAt: false,
-              isActive: true,
+              uuid: false,
+              name: true,
+              description: true,
+              createdAt: false,
+              updatedAt: false,
+              isDefault: true,
               actions: true,
             },
+            density: 'compact',
           }}
         />
       </Box>
@@ -158,4 +144,4 @@ const CompanyTable = ({
   );
 };
 
-export default CompanyTable;
+export default CategoriesTable;

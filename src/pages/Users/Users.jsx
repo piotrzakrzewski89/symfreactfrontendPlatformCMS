@@ -18,6 +18,7 @@ const UserPage = () => {
     const [loadingActive, setLoadingActive] = useState(false);
     const [loadingDeleted, setLoadingDeleted] = useState(false);
     const [view, setView] = useState('active');
+    const [sorting, setSorting] = useState([{ id: 'id', desc: false }]);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('review'); // 'create' | 'view' | 'edit'
@@ -26,7 +27,9 @@ const UserPage = () => {
     const fetchActiveUsers = async () => {
         setLoadingActive(true);
         try {
-            const data = await getActiveUsers();
+            const sortBy = sorting[0]?.id || 'id';
+            const sortOrder = sorting[0]?.desc ? 'desc' : 'asc';
+            const data = await getActiveUsers(sortBy, sortOrder);
             setActiveUsers(data);
         } finally {
             setLoadingActive(false);
@@ -36,7 +39,9 @@ const UserPage = () => {
     const fetchDeletedUsers = async () => {
         setLoadingDeleted(true);
         try {
-            const data = await getDeletedUsers();
+            const sortBy = sorting[0]?.id || 'id';
+            const sortOrder = sorting[0]?.desc ? 'desc' : 'asc';
+            const data = await getDeletedUsers(sortBy, sortOrder);
             setDeletedUsers(data);
         } finally {
             setLoadingDeleted(false);
@@ -50,7 +55,7 @@ const UserPage = () => {
 
     useEffect(() => {
         refreshCurrent();
-    }, [view]);
+    }, [view, sorting]);
 
     // Modal
     const openCreateModal = () => {
@@ -123,6 +128,8 @@ const UserPage = () => {
                     users={activeUsers}
                     loading={loadingActive}
                     view={view}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
                     onCreateClick={openCreateModal}
                     onReview={handleReview}
                     onEdit={handleEdit}
@@ -137,6 +144,8 @@ const UserPage = () => {
                     users={deletedUsers}
                     loading={loadingDeleted}
                     view={view}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
                     onReview={handleReview}
                 />
             )}

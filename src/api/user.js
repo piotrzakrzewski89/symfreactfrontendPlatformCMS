@@ -43,9 +43,9 @@ export const updateUser = async (id, userData) => {
     }
 };
 
-export const getActiveUsers = async () => {
+export const getActiveUsers = async (sortBy = 'id', sortOrder = 'asc') => {
     try {
-        const res = await axiosUser.get('/active', {
+        const res = await axiosUser.get(`/active?sortBy=${sortBy}&sortOrder=${sortOrder}`, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;
@@ -54,9 +54,9 @@ export const getActiveUsers = async () => {
     }
 };
 
-export const getDeletedUsers = async () => {
+export const getDeletedUsers = async (sortBy = 'id', sortOrder = 'asc') => {
     try {
-        const res = await axiosUser.get('/deleted', {
+        const res = await axiosUser.get(`/deleted?sortBy=${sortBy}&sortOrder=${sortOrder}`, {
             headers: { Authorization: `Bearer ${getAdminToken()}` }
         });
         return res.data;
